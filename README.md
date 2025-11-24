@@ -1,161 +1,126 @@
-🎓 F-1 Visa Guidance System – Agent 1 + Agent 2
-Timeline Generator, Checklist Builder & Policy Analyzer
+# 🎓 F-1 Visa Guidance System  
+### **AI-Powered CPT / OPT Timeline + Checklist Generator**
 
-This project implements a multi-agent F-1 Visa Guidance System built for the MSA 8770 Final Project.
-It combines Agent 1 (Policy Extraction) and Agent 2 (Timeline & Checklist Coordinator) into a single modular system with a premium Streamlit UI.
+This project implements a multi-agent F-1 visa assistance system designed to help international students understand their CPT and OPT eligibility, requirements, and compliance tasks.
 
-🧠 System Overview
+The system combines:
 
-Agent 1 – Policy Extractor (RAG / Scraper)
+- **Agent 1 — Policy Extractor (Scraper + RAG)**
+- **Agent 2 — Timeline & Checklist Coordinator**
+- **Streamlit UI — Modern, premium interface for end users**
 
-Scrapes USCIS / ISSS websites
+This application transforms raw USCIS/ISSS immigration rules into a structured, personalized roadmap for international students.
 
-Chunks content
+---
 
-Extracts policies (rules, risks, required actions)
+## 🚀 Features
 
-Outputs standardized JSON
+### **🧠 Agent 1 — Policy Extraction (Placeholder for Now)**
+- Scrapes USCIS / ISSS content  
+- Extracts rules, risks, timelines  
+- Outputs standardized JSON  
+- UI accepts this JSON manually for now  
+- Will be fully integrated once the team uploads Agent 1 code  
 
-Agent 2 – Timeline & Checklist Coordinator
+### **📅 Agent 2 — Timeline Engine**
+- Computes CPT eligibility date  
+- Computes OPT application window  
+- Generates milestone-based monthly checklist  
+- Adds policy-triggered action steps  
+- Fully integrated with Streamlit UI  
 
-Reads student profile
+### **🎨 Premium Streamlit UI**
+- Apple-style dark gradient theme  
+- Sidebar student profile input  
+- Policy dashboard with risk chips  
+- Dynamic cards for:
+  - Student snapshot  
+  - Timeline overview  
+  - Personalized checklist  
+- Export button (`agent2_output.json`)  
+- Ready for public deployment on Streamlit Cloud  
 
-Reads Agent 1’s JSON rules
+---
 
-Builds:
+## 🏗️ Repository Structure
 
-CPT eligibility timeline
-
-OPT filing window
-
-Month-wise checklist
-
-Policy-triggered action items
-
-Streamlit UI (Frontend)
-
-Premium Apple-style interface
-
-Sidebar: Student profile + milestones
-
-Main panel: Agent 1 JSON, timeline, checklist
-
-JSON export button
-
-🏗️ Project Architecture
+```
 f1_visa_system/
 │
-├── agents_backend.py      # Agent 1 (placeholder) + Agent 2 backend logic
 ├── app.py                 # Streamlit UI (Frontend)
-├── requirements.txt       # Dependencies for Streamlit Cloud
+├── agents_backend.py      # Agent 1 + Agent 2 backend logic
+├── requirements.txt       # Dependencies
 └── README.md              # Documentation
+```
 
-🚀 Features
-✔ Agent 1 (currently placeholder)
+---
 
-Provides sample policy rules
+## 📦 Installation (Local Development)
 
-Can later be replaced with real scraping + RAG outputs
-
-UI is already wired to accept JSON from Agent 1
-
-✔ Agent 2
-
-Computes CPT eligibility date
-
-Computes OPT window
-
-Generates month-wise checklist
-
-Tracks milestones
-
-Adds policy-driven tasks
-
-✔ Streamlit UI
-
-Premium dark gradient theme
-
-Clean card-based layout
-
-Sidebar for profile input
-
-Policy JSON viewer
-
-Risk-level chips (High / Medium / Low)
-
-Export button (agent2_output.json)
-
-📦 Installation (Local Machine)
-1. Clone the repo
+### 1️⃣ Clone the repository
+```bash
 git clone https://github.com/<your-username>/f1_visa_system.git
 cd f1_visa_system
+```
 
-2. Create & activate virtual environment
+### 2️⃣ Create a virtual environment
+```bash
 python3 -m venv venv
 source venv/bin/activate
+```
 
-3. Install dependencies
+### 3️⃣ Install dependencies
+```bash
 pip install -r requirements.txt
+```
 
-4. Run the app
+### 4️⃣ Run the Streamlit application
+```bash
 streamlit run app.py
+```
 
+The UI will open at:  
+👉 http://localhost:8501
 
-Your browser will open at:
+---
 
-http://localhost:8501
+## 🌐 Deployment (Streamlit Cloud)
 
-🌐 Deploy on Streamlit Cloud
-
-Go to https://share.streamlit.io
-
-Connect your GitHub account
-
-Click New App
-
-Select:
-
-Repository → <your repo>
-
-Branch → main
-
-Main file → app.py
-
-Click Deploy
+1. Push this full project to GitHub  
+2. Open: **https://share.streamlit.io**  
+3. Click **New App**  
+4. Select:
+   - Repository → this repo  
+   - Branch → `main`  
+   - Main file → `app.py`  
+5. Click **Deploy**
 
 You will get a public link like:
 
+```
 https://f1-visa-system.streamlit.app
-
+```
 
 Share this link with your team & professor.
 
-🔄 How Teammates Add Agent 1 Later
+---
 
-Once Pavithra / Abhay finalize Agent 1:
+## 🔄 Updating Agent 1
 
-Open agents_backend.py
+Once your teammates upload their Agent 1 code:
 
-Replace the placeholder function:
+1. Open **agents_backend.py**
+2. Replace this placeholder:
 
+```python
 def run_agent1(...):
     return get_default_agent1_updates()
+```
 
+3. Replace with real scraping + RAG pipeline  
+4. Make sure it returns JSON in the format:
 
-with the real:
-
-scraper
-
-chunker
-
-embedder
-
-retriever
-
-rule extractor
-
-Make sure it returns a list of objects like:
-
+```json
 [
   {
     "update": "CPT requires 1 academic year...",
@@ -164,41 +129,28 @@ Make sure it returns a list of objects like:
     "action_needed": "Verify CPT eligibility window"
   }
 ]
+```
 
+The UI will automatically support it.  
+No changes needed in `app.py`.
 
-No changes to the UI are needed — it will automatically start using real Agent 1 output.
+---
 
-📁 Requirements File
+## 📁 requirements.txt (for local + cloud)
+
+```
 streamlit
 python-dateutil
+```
 
+---
 
-Perfect for Streamlit Cloud and local use.
+## 🧪 Demo Summary for Presentations
 
-🎤 Demo Flow (What to Say in Presentation)
-
-“Agent 1 extracts immigration rules dynamically from USCIS.”
-
-“Agent 2 combines those rules with student data.”
-
-“The UI visualizes CPT/OPT windows & generates an actionable checklist.”
-
-“Everything is modular — we can add Agent 3 later if needed.”
-
-👑 Final Notes
-
-This repo is designed for:
-
-clean professor review
-
-easy teammate collaboration
-
-smooth future expansion
-
-If you add new agents later, simply create new files like:
-
-agent3_employer_checker.py
-agent4_visa_risk_analyzer.py
-
-
-The architecture can grow infinitely without breaking.
+- Agent 1 extracts & structures immigration rules  
+- Agent 2 merges rules + student profile  
+- Streamlit UI displays:
+  - CPT/OPT dates  
+  - Month-wise checklist  
+  - Policy-triggered compliance actions  
+- Deployable on Streamlit Cloud with a shareable link  
