@@ -80,7 +80,7 @@ streamlit run app.py
 ```
 
 The UI will open at:  
-👉 http://localhost:8501
+👉 [http://localhost:8501](https://f-1-visa-guidance-system.streamlit.app/)
 
 ---
 
