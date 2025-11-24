@@ -96,7 +96,6 @@ def run_agent2(user_profile, agent1_updates):
     return final_output
 
 def summarize_policies(agent1_updates):
-    """Return counts by risk level for small summary chips."""
     summary = {"high": 0, "medium": 0, "low": 0}
     for upd in agent1_updates:
         lvl = upd.get("risk_level", "").lower()
@@ -108,7 +107,7 @@ def summarize_policies(agent1_updates):
 # 4. STREAMLIT UI
 # ============================================================
 
-st.set_page_config(page_title="F-1 Visa Timeline & Checklist", layout="wide")
+st.set_page_config(page_title="F-1 Visa Timeline & Chat Assistant", layout="wide")
 
 # ---------- Premium CSS ----------
 st.markdown("""
@@ -176,102 +175,74 @@ section[data-testid="stSidebar"] h3 {
     filter: brightness(1.1);
 }
 
-/* Card container */
-.card {
-    background: rgba(15,23,42,0.96);
-    padding: 20px 22px;
-    border-radius: 18px;
-    border: 1px solid rgba(148,163,184,0.35);
-    margin-bottom: 18px;
-    box-shadow: 0 18px 40px rgba(15,23,42,0.85);
-}
-
-/* Chips */
-.chip-row {
+/* Chat styles */
+.chat-container {
     display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
 }
-.chip {
-    font-size: 0.8rem;
-    padding: 0.25rem 0.7rem;
-    border-radius: 999px;
+.chat-row-user {
+    display: flex;
+    justify-content: flex-end;
+}
+.chat-row-bot {
+    display: flex;
+    justify-content: flex-start;
+}
+.chat-bubble {
+    max-width: 70%;
+    padding: 0.6rem 0.9rem;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+.chat-bubble-user {
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+.chat-bubble-bot {
+    background-color: #020617;
     border: 1px solid rgba(148,163,184,0.45);
-    background-color: rgba(15,23,42,0.9);
-}
-.chip-high {
-    border-color: #f97373;
-    color: #fecaca;
-}
-.chip-medium {
-    border-color: #facc15;
-    color: #fef9c3;
-}
-.chip-low {
-    border-color: #4ade80;
-    color: #dcfce7;
-}
-
-/* Expander styling */
-details {
-    background-color: rgba(15,23,42,0.96) !important;
-    border-radius: 14px !important;
-    border: 1px solid rgba(51,65,85,0.85) !important;
-}
-
-/* Metrics */
-.block-container {
-    padding-top: 1.4rem;
+    color: #e5e7eb;
+    border-bottom-left-radius: 4px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ---------- Hero header ----------
-st.markdown(
-    """
-    <div class="hero-strip">
-        <div style="display:flex;align-items:center;gap:1rem;">
-            <div style="font-size:2.1rem;">🎓</div>
-            <div>
-                <p class="hero-title">F-1 Visa Timeline & Checklist</p>
-                <p class="hero-subtitle">
-                    Agent 2 Prototype – transforms immigration rules & your profile into a CPT / OPT roadmap.
-                </p>
-            </div>
+st.markdown("""
+<div class="hero-strip">
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <div style="font-size:2.1rem;">🎓</div>
+        <div>
+            <p class="hero-title">F-1 Visa Timeline & Chat Assistant</p>
+            <p class="hero-subtitle">Smart multi-agent system for CPT, OPT, SEVIS & immigration guidance.</p>
         </div>
     </div>
-    """,
-    unsafe_allow_html=True,
-)
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown("")  # small spacing
+st.markdown("")
 
-# ----- Sidebar: User Profile Inputs -----
+# ----- Sidebar Inputs -----
 st.sidebar.header("Student Profile")
 
 name = st.sidebar.text_input("Name", value="", placeholder="e.g., Amina")
 major = st.sidebar.text_input("Major", value="", placeholder="e.g., Computer Science")
-degree_level = st.sidebar.selectbox(
-    "Degree Level", ["Bachelors", "Masters", "PhD"], index=1
-)
+degree_level = st.sidebar.selectbox("Degree Level", ["Bachelors", "Masters", "PhD"], index=1)
 
-arrival_date_input = st.sidebar.date_input(
-    "Arrival Date in the U.S.", value=datetime.date(2025, 1, 5)
-)
-graduation_date_input = st.sidebar.date_input(
-    "Graduation Date", value=datetime.date(2026, 12, 15)
-)
+arrival_date_input = st.sidebar.date_input("Arrival Date", value=datetime.date(2025, 1, 5))
+graduation_date_input = st.sidebar.date_input("Graduation Date", value=datetime.date(2026, 12, 15))
 
 st.sidebar.subheader("Milestones")
 sevis_checkin = st.sidebar.checkbox("SEVIS Check-In completed", value=True)
-passport_uploaded = st.sidebar.checkbox("Passport uploaded to ISSS", value=True)
-first_semester_complete = st.sidebar.checkbox(
-    "First semester complete", value=False
-)
+passport_uploaded = st.sidebar.checkbox("Passport uploaded", value=True)
+first_semester_complete = st.sidebar.checkbox("First semester complete", value=False)
 cpt_applied = st.sidebar.checkbox("CPT applied", value=False)
 opt_applied = st.sidebar.checkbox("OPT applied", value=False)
 
-# Build user_profile dict from inputs
 user_profile = {
     "name": name if name.strip() else "Student",
     "arrival_date": arrival_date_input.isoformat(),
@@ -287,141 +258,120 @@ user_profile = {
     },
 }
 
-# ---------- Layout columns ----------
-left_pad, main_col, right_pad = st.columns([0.03, 0.94, 0.03])
+# ----- Maintain Chat State -----
+if "chat_messages" not in st.session_state:
+    st.session_state["chat_messages"] = [
+        {"role": "assistant", "content": "Hi! I’m your F-1 visa assistant. Ask me anything about CPT, OPT, SEVIS, or timelines."}
+    ]
 
-with main_col:
+# ----- Tabs -----
+tab1, tab2 = st.tabs(["📊 Timeline & Checklist", "💬 Chat Assistant"])
 
-    # ===== Agent 1 Panel =====
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
-    st.subheader("📘 Agent 1 Policy Updates (temporary JSON input)")
-    st.caption(
-        "Eventually this will be auto-filled from Agent 1. For now, paste JSON output here if needed."
-    )
+# ============================================================
+# TIMELINE TAB
+# ============================================================
+with tab1:
 
-    default_agent1 = json.dumps(
-        [
-            {
-                "update": "CPT requires 1 academic year of full-time enrollment.",
-                "source": "USCIS Policy 2024",
-                "risk_level": "medium",
-                "action_needed": "Check CPT eligibility window",
-            },
-            {
-                "update": "DSO must be notified within 10 days of job loss.",
-                "source": "DHS 2025",
-                "risk_level": "high",
-                "action_needed": "Add job-loss notification step during OPT",
-            },
-        ],
-        indent=4,
-    )
+    st.subheader("📘 Agent 1 Policy Updates (Temporary JSON Input)")
 
-    agent1_text = st.text_area(
-        "Agent 1 JSON",
-        value=default_agent1,
-        height=200,
-    )
+    default_agent1 = json.dumps([
+        {
+            "update": "CPT requires 1 academic year of full-time enrollment.",
+            "source": "USCIS Policy 2024",
+            "risk_level": "medium",
+            "action_needed": "Check CPT eligibility window"
+        },
+        {
+            "update": "DSO must be notified within 10 days of job loss.",
+            "source": "DHS 2025",
+            "risk_level": "high",
+            "action_needed": "Add job-loss notification step during OPT"
+        }
+    ], indent=4)
 
-    # Safely parse Agent 1 JSON
+    agent1_text = st.text_area("Agent 1 JSON", value=default_agent1, height=200)
+
     try:
-        agent1_updates = json.loads(agent1_text) if agent1_text.strip() else []
+        agent1_updates = json.loads(agent1_text)
         parse_error = False
-    except json.JSONDecodeError:
-        parse_error = True
+    except:
+        st.error("Invalid JSON")
         agent1_updates = []
-        st.error("❌ Agent 1 JSON is not valid. Please fix the format.")
+        parse_error = True
 
-    # Small chips for policy risk summary
     if not parse_error and agent1_updates:
         summary = summarize_policies(agent1_updates)
-        st.markdown("<div class='chip-row'>", unsafe_allow_html=True)
-        st.markdown(
-            f"<span class='chip chip-high'>High risk: {summary['high']}</span>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"<span class='chip chip-medium'>Medium risk: {summary['medium']}</span>",
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            f"<span class='chip chip-low'>Low risk: {summary['low']}</span>",
-            unsafe_allow_html=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.write(f"High risk: {summary['high']} | Medium: {summary['medium']} | Low: {summary['low']}")
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    run = st.button("Generate Timeline & Checklist")
 
-    # ===== Generate button (centered) =====
-    center_col = st.columns([1, 1, 1])[1]
-    with center_col:
-        run_clicked = st.button("Generate Timeline & Checklist")
-
-    if run_clicked and not parse_error:
+    if run and not parse_error:
         output = run_agent2(user_profile, agent1_updates)
 
-        st.success("✅ Timeline & checklist generated!")
+        st.success("Generated!")
 
-        # ===== Hero summary card =====
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
         st.subheader("👤 Student Snapshot")
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            st.markdown(f"**Name**  \n{user_profile['name']}")
-            st.markdown(f"**Degree Level**  \n{user_profile['degree_level']}")
-        with col_b:
-            st.markdown(f"**Major**  \n{user_profile['major']}")
-            st.markdown(f"**Arrival Date**  \n`{user_profile['arrival_date']}`")
-        with col_c:
-            st.markdown(f"**Graduation Date**  \n`{user_profile['graduation_date']}`")
-            st.markdown(
-                f"**Months Since Arrival**  \n`{output['timeline']['months_since_arrival']}`"
-            )
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.write(output["user_profile"])
 
-        # ===== Timeline Card =====
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.subheader("📅 Timeline Overview")
+        st.subheader("📅 Timeline")
+        st.write(output["timeline"])
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric(
-                "Months Since Arrival", output["timeline"]["months_since_arrival"]
-            )
-            st.write(
-                f"**CPT Eligibility Date**  \n`{output['timeline']['cpt_eligibility_date']}`"
-            )
-        with col2:
-            st.write(
-                f"**OPT Earliest Filing Date (−90 days)**  \n`{output['timeline']['opt_eligibility_start']}`"
-            )
-            st.write(
-                f"**OPT Latest Filing (Graduation)**  \n`{output['timeline']['opt_eligibility_end']}`"
-            )
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.subheader("📝 Checklist")
+        for section, items in output["checklist"].items():
+            with st.expander(section):
+                for item in items:
+                    st.markdown(f"- {item}")
 
-        # ===== Checklist Card =====
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.subheader("📝 Personalized Checklist")
-
-        checklist = output["checklist"]
-        for section, items in checklist.items():
-            with st.expander(section, expanded=True):
-                if items:
-                    for item in items:
-                        st.markdown(f"- {item}")
-                else:
-                    st.markdown("_No items for this section yet._")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # ===== Download JSON Card =====
-        st.markdown("<div class='card'>", unsafe_allow_html=True)
-        st.subheader("⬇️ Export Raw Output")
-        st.caption("Download the full Agent 2 result as JSON (for debugging or feeding into Agent 3).")
         st.download_button(
-            label="Download JSON",
+            "Download JSON",
             data=json.dumps(output, indent=4),
-            file_name="agent2_output.json",
-            mime="application/json",
+            file_name="agent2_output.json"
         )
-        st.markdown("</div>", unsafe_allow_html=True)
+
+# ============================================================
+# CHAT TAB
+# ============================================================
+with tab2:
+
+    st.subheader("💬 Chat with Your F-1 Assistant")
+    st.caption("Backend team will plug in multi-agent logic here.")
+
+    # Display chat messages
+    st.markdown("<div class='chat-container'>", unsafe_allow_html=True)
+    for msg in st.session_state["chat_messages"]:
+        if msg["role"] == "user":
+            st.markdown(
+                f"<div class='chat-row-user'><div class='chat-bubble chat-bubble-user'>{msg['content']}</div></div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                f"<div class='chat-row-bot'><div class='chat-bubble chat-bubble-bot'>{msg['content']}</div></div>",
+                unsafe_allow_html=True,
+            )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Chat input
+    with st.form("chat_form", clear_on_submit=True):
+        user_input = st.text_input("Ask a question...", placeholder="When can I apply for OPT?")
+        send = st.form_submit_button("Send")
+
+    if send and user_input.strip():
+        # Store user message
+        st.session_state["chat_messages"].append(
+            {"role": "user", "content": user_input}
+        )
+
+        # =======================
+        # BACKEND TEAM TODO HERE
+        # =======================
+        assistant_reply = (
+            "Thanks for your question! In the final system, this answer will come from "
+            "the integrated multi-agent system (Agent 1 + Agent 2)."
+        )
+
+        st.session_state["chat_messages"].append(
+            {"role": "assistant", "content": assistant_reply}
+        )
+
+        st.rerun()
