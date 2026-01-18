@@ -87,7 +87,7 @@ The UI will open at:
 ## 🌐 Deployment (Streamlit Cloud)
 
 1. Push this full project to GitHub  
-2. Open: **https://share.streamlit.io**  
+2. Open: **[https://share.streamlit.io](https://f-1-visa-guidance-system.streamlit.app/)**  
 3. Click **New App**  
 4. Select:
    - Repository → this repo  
